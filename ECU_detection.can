@@ -1,0 +1,58 @@
+/*@!Encoding:1252*/
+includes
+{
+  
+}
+
+variables
+{
+  message status_detection statusMsg;
+  message car_detection carDetectionMsg;
+  char ECU_ready_sent_flag=0x00;
+  msTimer working_timer;
+}
+
+on message send_ready_main
+{
+  if(this.ready_main==1)
+  {
+    ECU_ready_sent_flag = 1;
+    
+  }
+}
+
+on envVar ready_detection_var
+{
+  if(ECU_ready_sent_flag == 1)
+  {
+    statusMsg.ready_det = getValue(ready_detection_var);
+    output(statusMsg);
+  }
+}
+
+on message start_main
+{
+  if(this.start_signal == 1)
+  {
+    setTimer(working_timer,300);
+  }
+  else
+  {
+    cancelTimer(working_timer);
+  }
+}
+
+
+
+on timer working_timer
+{
+  carDetectionMsg.left_car = getValue(left_car_flag);
+  carDetectionMsg.right_car = getValue(right_car_flag_var);
+  carDetectionMsg.forward_car = getValue(forward_car_flag);
+  carDetectionMsg.left_distance = getValue(left_distance_var);
+  carDetectionMsg.right_distance = getValue(right_distance_var);
+  carDetectionMsg.forward_distance = getValue(forward_distance_var);
+  output(carDetectionMsg);
+  setTimer(working_timer,300);
+}
+

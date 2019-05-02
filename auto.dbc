@@ -1,0 +1,129 @@
+VERSION ""
+
+
+NS_ : 
+	NS_DESC_
+	CM_
+	BA_DEF_
+	BA_
+	VAL_
+	CAT_DEF_
+	CAT_
+	FILTER
+	BA_DEF_DEF_
+	EV_DATA_
+	ENVVAR_DATA_
+	SGTYPE_
+	SGTYPE_VAL_
+	BA_DEF_SGTYPE_
+	BA_SGTYPE_
+	SIG_TYPE_REF_
+	VAL_TABLE_
+	SIG_GROUP_
+	SIG_VALTYPE_
+	SIGTYPE_VALTYPE_
+	BO_TX_BU_
+	BA_DEF_REL_
+	BA_REL_
+	BA_DEF_DEF_REL_
+	BU_SG_REL_
+	BU_EV_REL_
+	BU_BO_REL_
+	SG_MUL_VAL_
+
+BS_:
+
+BU_: steering_distracted_ECU detection_ECU control_ECU main_ECU
+VAL_TABLE_ distance_define 2 "dangerous" 1 "critical" 0 "far" ;
+VAL_TABLE_ driver_status_define 1 "ditracted_driver" 0 "normal_driver" ;
+VAL_TABLE_ start_define 1 "OFF_ready" 0 "ON_ready" ;
+VAL_TABLE_ ready_position 1 "OFF_start" 0 "ON_start" ;
+
+
+BO_ 8 status_control: 1 control_ECU
+ SG_ ready_control : 0|1@1+ (1,0) [0|1] "" Vector__XXX
+
+BO_ 7 distracted_steering: 1 steering_distracted_ECU
+ SG_ driver_status_steering : 0|1@1+ (1,0) [0|1] "" Vector__XXX
+
+BO_ 6 angle_steering: 3 steering_distracted_ECU
+ SG_ confidence_steering : 16|8@1+ (1,0) [0|100] "" Vector__XXX
+ SG_ angle_steering : 0|16@1- (1,0) [-180|180] "" Vector__XXX
+
+BO_ 5 status_steering: 1 steering_distracted_ECU
+ SG_ ready_steering : 0|1@1+ (1,0) [0|1] "" Vector__XXX
+
+BO_ 4 car_detection: 2 detection_ECU
+ SG_ left_distance : 5|2@1+ (1,0) [0|2] "" Vector__XXX
+ SG_ forward_distance : 3|2@1+ (1,0) [0|2] "" Vector__XXX
+ SG_ right_distance : 8|2@1+ (1,0) [0|2] "" Vector__XXX
+ SG_ left_car : 2|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ forward_car : 1|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ right_car : 0|1@1+ (1,0) [0|1] "" Vector__XXX
+
+BO_ 3 status_detection: 1 detection_ECU
+ SG_ ready_det : 0|1@1+ (1,0) [0|1] "" Vector__XXX
+
+BO_ 2 send_ready_main: 1 main_ECU
+ SG_ ready_main : 0|1@1+ (1,0) [0|1] "" Vector__XXX
+
+BO_ 1 start_main: 1 main_ECU
+ SG_ start_signal : 0|1@1+ (1,0) [0|1] "" Vector__XXX
+
+
+
+EV_ distracted_warning: 0 [0|1] "" 0 1 DUMMY_NODE_VECTOR2  control_ECU;
+
+EV_ all_ECUs_ON_var: 0 [0|1] "" 0 2 DUMMY_NODE_VECTOR2  main_ECU;
+
+EV_ auto_control_var: 0 [0|1] "" 0 3 DUMMY_NODE_VECTOR2  control_ECU;
+
+EV_ confidence_steering_var: 0 [0|256] "" 0 4 DUMMY_NODE_VECTOR1  steering_distracted_ECU;
+
+EV_ angle_control_var: 0 [-384|384] "" 0 5 DUMMY_NODE_VECTOR2  control_ECU;
+
+EV_ speed_control_var: 0 [0|384] "" 0 6 DUMMY_NODE_VECTOR2  control_ECU;
+
+EV_ ready_control_var: 0 [0|1] "" 0 7 DUMMY_NODE_VECTOR1  control_ECU;
+
+EV_ ready_steering_var: 0 [0|1] "" 0 8 DUMMY_NODE_VECTOR1  steering_distracted_ECU;
+
+EV_ distracted_steering_flag: 0 [0|1] "" 0 9 DUMMY_NODE_VECTOR1  steering_distracted_ECU;
+
+EV_ angle_steering_var: 0 [-384|384] "" 0 10 DUMMY_NODE_VECTOR1  steering_distracted_ECU;
+
+EV_ ready_detection_var: 0 [0|1] "" 0 11 DUMMY_NODE_VECTOR1  detection_ECU;
+
+EV_ left_distance_var: 0 [0|2] "" 0 12 DUMMY_NODE_VECTOR1  detection_ECU;
+
+EV_ forward_distance_var: 0 [0|2] "" 0 13 DUMMY_NODE_VECTOR1  detection_ECU;
+
+EV_ right_distance_var: 0 [0|2] "" 0 14 DUMMY_NODE_VECTOR1  detection_ECU;
+
+EV_ forward_car_flag: 0 [0|1] "" 0 15 DUMMY_NODE_VECTOR1  detection_ECU;
+
+EV_ left_car_flag: 0 [0|1] "" 0 16 DUMMY_NODE_VECTOR1  detection_ECU;
+
+EV_ right_car_flag_var: 0 [0|1] "" 0 17 DUMMY_NODE_VECTOR1  detection_ECU;
+
+EV_ ready_main_var: 0 [0|1] "" 0 18 DUMMY_NODE_VECTOR1  main_ECU;
+
+EV_ on_off_var: 0 [0|1] "" 0 19 DUMMY_NODE_VECTOR1  main_ECU;
+
+BA_DEF_  "BusType" STRING ;
+BA_DEF_DEF_  "BusType" "";
+VAL_ 8 ready_control 1 "off" 0 "on" ;
+VAL_ 7 driver_status_steering 1 "ditracted_driver" 0 "normal_driver" ;
+VAL_ 5 ready_steering 1 "off" 0 "on" ;
+VAL_ 4 left_distance 2 "dangerous" 1 "critical" 0 "far" ;
+VAL_ 4 forward_distance 2 "dangerous" 1 "critical" 0 "far" ;
+VAL_ 4 right_distance 2 "dangerous" 1 "critical" 0 "far" ;
+VAL_ 3 ready_det 1 "off" 0 "on" ;
+VAL_ 2 ready_main 1 "OFF_start" 0 "ON_start" ;
+VAL_ 1 start_signal 1 "off" 0 "on" ;
+VAL_ all_ECUs_ON_var 1 "OFF_start" 0 "ON_start" ;
+VAL_ ready_control_var 1 "off" 0 "on" ;
+VAL_ ready_steering_var 1 "off" 0 "on" ;
+VAL_ distracted_steering_flag 1 "ditracted_driver" 0 "normal_driver" ;
+VAL_ ready_detection_var 1 "off" 0 "on" ;
+

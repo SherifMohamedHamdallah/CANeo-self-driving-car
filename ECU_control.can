@@ -1,0 +1,139 @@
+/*@!Encoding:1252*/
+includes
+{
+  
+}
+
+variables
+{
+  message status_control statusMsg;
+  char ECU_ready_sent_flag=0x00;
+  int speed=0;
+  msTimer working_timer;
+  char distracted_flag=0;/*initially normally*/
+  char confidence_variable=100;/*initial confidence*/
+  char angle_variable=0;/*initial angle*/
+  char forward_car_flag=0;/*initial no car*/
+  char forward_distance_variable=0;/*initial far*/
+}
+
+on message send_ready_main
+{
+  if(this.ready_main==1)
+  {
+    ECU_ready_sent_flag = 1;
+    
+  }
+}
+
+on envVar ready_control_var
+{
+  if(ECU_ready_sent_flag == 1)
+  {
+    statusMsg.ready_control = getValue(ready_control_var);
+    output(statusMsg);
+  }
+}
+
+on message start_main
+{
+  if(this.start_signal == 1)
+  {
+    setTimer(working_timer,300);
+  }
+  else
+  {
+    cancelTimer(working_timer);
+  }
+}
+
+on message angle_steering
+{
+  confidence_variable = this.confidence_steering;
+  angle_variable = this.angle_steering;
+  analysis_steering(confidence_variable,angle_variable,distracted_flag);
+}
+
+on message distracted_steering
+{
+  distracted_flag = this.driver_status_steering;
+  analysis_steering(confidence_variable,angle_variable,distracted_flag);
+  
+}
+
+
+on message car_detection
+{
+  forward_car_flag=this.forward_car;
+  forward_distance_variable=this.forward_distance;
+  analysis_speed(forward_car_flag,forward_distance_variable);
+}
+
+
+
+void analysis_speed(char car_flag,char car_distance)
+{
+  if(car_flag==0)
+  {
+    if (speed<180)
+    {
+      speed+=10;
+    }
+  }
+  else
+  {
+    switch(car_distance)
+    {
+      case 0: /*far*/
+        if (speed<180)
+        {
+          speed+=10;
+         }
+        break;
+        
+        case 1: /*critical*/
+          if(speed>=10)
+           {
+            speed-=10;
+           }
+          break;
+        
+        case 2: /*dangerous*/
+        speed = 0;
+        break;
+    }
+  }
+  putValue(speed_control_var,speed);
+}
+
+
+void analysis_steering(char confidence,int angle,char driver_status)
+{
+  if(confidence>50)
+  {
+    putValue(auto_control_var,1);
+    putValue(angle_control_var,angle);
+  }
+  else
+  {
+    if(driver_status == 1)  /* distracted*/
+    {
+      putValue(distracted_warning,1);
+    }
+    else
+    {
+      putValue(distracted_warning,0);
+    }
+    putValue(auto_control_var,0);
+    putValue(angle_control_var,0);
+  }
+}
+
+
+on timer working_timer
+{
+  analysis_speed(forward_car_flag,forward_distance_variable);
+  analysis_steering(confidence_variable,angle_variable,distracted_flag);
+  setTimer(working_timer,300);
+}
+

@@ -1,0 +1,110 @@
+/*@!Encoding:1252*/
+includes
+{
+  
+}
+
+variables
+{
+  char flag_on_off_car=0; /*car initailly off*/
+  char flag_ECUs_ready=0x0; /*ready of all ECUs*/
+  char all_working_ECUs_pre=0; /*previous working ECUs (1-->working) */
+  message send_ready_main readyInitiateMsg;
+  message start_main startMsg;
+  msTimer statuesTimer;
+}
+on envVar on_off_var {
+  if(getValue(on_off_var)== 1)
+  {
+    flag_on_off_car=1;
+  }
+  else
+  {
+    flag_on_off_car=0;
+    
+  }
+  chaeck_ready_on_off_flags();
+}
+on envVar ready_main_var{
+  if((getValue(ready_main_var)== 1))
+  {
+    flag_ECUs_ready|=(1<<3);
+    
+  }
+  else
+  {
+    flag_ECUs_ready&=~(1<<3);
+    
+  }
+  chaeck_ready_on_off_flags();
+}
+void chaeck_ready_on_off_flags(){
+  if((flag_on_off_car==1)&&(flag_ECUs_ready&(1<<3)))
+  {
+    readyInitiateMsg.ready_main=1;
+    output(readyInitiateMsg);/*start send ready from other ECUs */
+    setTimer(statuesTimer,300);
+  }
+  else 
+  {
+    readyInitiateMsg.ready_main=0;
+    output(readyInitiateMsg);/*start send ready from other ECUs */
+    
+  }
+}
+on timer statuesTimer{
+  if (!((flag_ECUs_ready==0x0F)&&(flag_on_off_car==1)))
+  {
+    putValue(all_ECUs_ON_var,0);
+    all_working_ECUs_pre=0;
+    startMsg.start_signal=0;
+    output(startMsg);
+  }
+  else /*all ECUs ara ON and previously off*/
+  {
+    if(all_working_ECUs_pre==0)
+    {
+      putValue(all_ECUs_ON_var,1);
+      all_working_ECUs_pre=1;
+      startMsg.start_signal=1;
+      output(startMsg);
+      
+    }
+    
+  }
+  setTimer(statuesTimer,300);
+ 
+}
+on message status_control{
+  
+  if(this.ready_control == 1)
+  {
+    flag_ECUs_ready|=(1<<0);/*control ECU ON*/
+  }
+  else
+  {
+    flag_ECUs_ready&=~(1<<0);/*control ECU ON*/
+  }
+} 
+on message status_detection{
+  
+  if(this.ready_det == 1)
+  {
+    flag_ECUs_ready|=(1<<1);/*control ECU ON*/
+  }
+  else
+  {
+    flag_ECUs_ready&=~(1<<1);/*control ECU ON*/
+  }
+} 
+on message status_steering{
+  
+  if(this.ready_steering == 1)
+  {
+    flag_ECUs_ready|=(1<<2);/*control ECU ON*/
+  }
+  else
+  {
+    flag_ECUs_ready&=~(1<<2);/*control ECU ON*/
+  }
+} 

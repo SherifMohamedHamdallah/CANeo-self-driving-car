@@ -1,0 +1,57 @@
+/*@!Encoding:1252*/
+includes
+{
+  
+}
+
+variables
+{
+  message status_steering statusMsg;
+  message angle_steering angleMsg;
+  message distracted_steering distractMsg;
+  char ECU_ready_sent_flag=0x00;
+  msTimer working_timer;
+}
+
+on message send_ready_main
+{
+  if(this.ready_main==1)
+  {
+    ECU_ready_sent_flag = 1;
+    
+  }
+}
+
+on envVar ready_steering_var
+{
+  if(ECU_ready_sent_flag == 1)
+  {
+    statusMsg.ready_steering = getValue(ready_steering_var);
+    output(statusMsg);
+  }
+}
+
+on message start_main
+{
+  if(this.start_signal == 1)
+  {
+    setTimer(working_timer,300);
+  }
+  else
+  {
+    cancelTimer(working_timer);
+  }
+}
+
+
+
+on timer working_timer
+{
+  angleMsg.angle_steering = getValue(angle_steering_var);
+  angleMsg.confidence_steering = getValue(confidence_steering_var);
+  output(angleMsg);
+  distractMsg.driver_status_steering = getValue(distracted_steering_flag);
+  output(distractMsg);
+  setTimer(working_timer,300);
+}
+
